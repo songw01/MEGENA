@@ -11,7 +11,7 @@ save.output = FALSE, oneplus=TRUE)
 	
 	if (doPar & getDoParWorkers() == 1 & num.cores > 1)
 	{
-		cl <- makeCluster(n.cores)
+		cl <- makeCluster(num.cores)
 		registerDoParallel(cl)
 		# check how many workers are there
 		cat(paste("number of cores to use:",getDoParWorkers(),"\n",sep = ""))
