@@ -2,8 +2,8 @@ do.MEGENA <- function(g,
 do.hubAnalysis = TRUE,
 mod.pval = 0.05,hub.pval = 0.05,remove.unsig = TRUE,
 min.size = 10,max.size = 2500,
-doPar = FALSE,num.cores = 4,n.perm = 100,singleton.size = 3,
-save.output = FALSE)
+doPar = FALSE,num.cores = 12,n.perm = 100,singleton.size = 3,
+save.output = FALSE, oneplus=TRUE)
 {
 	# g = igraph object of PFN
 	# mod.pval = module p-value
@@ -11,15 +11,15 @@ save.output = FALSE)
 	
 	if (doPar & getDoParWorkers() == 1 & num.cores > 1)
 	{
-		cl <- makeCluster(num.cores)
+		cl <- makeCluster(n.cores)
 		registerDoParallel(cl)
 		# check how many workers are there
 		cat(paste("number of cores to use:",getDoParWorkers(),"\n",sep = ""))
 	}
 	
 	###### do clustering
-	cat("Commence multiscale clustering....\n") 
-	module.output <- nested.kmeans.all(g = g,single.size = singleton.size);
+	cat("Commence multiscale clustering (multi-threaded)....\n") 
+	module.output <- nested.kmeans.all(g = g,single.size = singleton.size, num.cores=num.cores);
 	if (save.output) save(module.output,file = "multiscale_clusters.RData")
 	
 	# get the list of unsplit parent modules
