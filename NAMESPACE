@@ -1,0 +1,41 @@
+useDynLib(MEGENA,.registration = TRUE)
+exportPattern("^calculate.correlation",
+				"^compute.PFN.par",
+				"^calculate.PFN",
+				"^datExpr",
+				"^do.MEGENA",
+				"^get.hub.summary",
+				"^get.union.cut",
+				"^load.data",
+				"^MEGENA.ModuleSummary",
+				"^output.geneSet.file",
+				"^plot_module",
+				"^plot_subgraph",
+				"^planaritytest",
+				"^get.DegreeHubStatistic",
+				"^read.geneSet",
+				"^module_convert_to_table",
+				"^draw_sunburst_wt_fill")
+importFrom(Rcpp, evalCpp)
+#export(evaluate.boundary)
+#export(iterative.boundaryUpdate)
+#export(nested.kmeans)
+#export(nested.kmeans.all)
+importFrom(Matrix,Matrix)
+importFrom(Matrix,t)
+importFrom(Matrix,which)
+importFrom("grDevices", "dev.off", "heat.colors", "png")
+importFrom("graphics", "abline", "barplot", "hist", "par", "plot")
+importFrom("stats", "as.dist", "cor", "cor.test", "dist", "heatmap","p.adjust", "pchisq", "pnorm", "sd", "var")
+importFrom("stats", "quantile")
+importFrom("parallel","makeCluster")
+importFrom("utils", "combn", "read.delim", "write.table")
+import(doParallel)
+import(igraph)
+import(cluster)
+import(fpc)
+import(foreach)
+import(ggraph)
+import(ggplot2)
+import(reshape)
+import(ggrepel)
