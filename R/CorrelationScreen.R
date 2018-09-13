@@ -22,7 +22,7 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",rho.th
 	if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
 	gid <- rownames(datExpr)
 	datExpr <- t(datExpr)
-	rho <- abs(cor(datExpr,method = estimator))
+	rho <- abs(cor(datExpr,method = estimator,use='p')) #added used='p' in case there is missing data
 	
 	if (is.null(rho.thresh)) rho.thresh <- seq(0,1,0.01)
 	
@@ -35,7 +35,7 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",rho.th
 	for (i in 1:n.perm)
 	{
 		cat("i = ");cat(i);cat("\n");
-		random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator))
+		random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use='p'))
 		random.rho <- as.vector(random.rho[upper.tri(random.rho)]);
 		
 		count.out[[i]] <- count.FD(random.rho,rho.thresh)
