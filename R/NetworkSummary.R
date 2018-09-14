@@ -32,6 +32,7 @@ output.sig = TRUE)
 														 paste(paste(as.character(tbl$gene),"(",as.character(tbl$degree),")",sep = ""),collapse = ",")
 														},pval = hub.pvalue)
 		}else{
+		 if(is.null(symbol.col) || is.null(id.col)) stop('symbol.col and id.col must be provided when anno.table is not NULL\n') #added by MW
 		 gene.vec <- as.character(annot.table[[symbol.col]]);
 		 names(gene.vec) <- as.character(annot.table[[id.col]])
 		 hub.summary <- sapply(hub.output$module.degreeStat,function(x,pval,gene.vec) {

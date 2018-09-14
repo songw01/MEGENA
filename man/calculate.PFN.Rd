@@ -1,5 +1,6 @@
 \name{calculate.PFN}
 \alias{calculate.PFN}
+\alias{resume.calculate.PFN}
 %- Also NEED an '\alias' for EACH other topic documented here.
 \title{
 PFN calculation
@@ -9,7 +10,10 @@ main function to calculate PFN a ranked list of edge pairs
 }
 \usage{
 calculate.PFN(edgelist,max.skipEdges = NULL,maxENum = NULL,doPar = FALSE,
-num.cores = NULL,keep.track = TRUE)
+	num.cores = NULL, keep.track = TRUE, save.vertex.names=TRUE,
+	vertex.names.file='vertex.names.RData')
+resume.calculate.PFN(edgelist, net, max.skipEdges = NULL, doPar = FALSE,
+	num.cores = NULL, keep.track = TRUE, vertex.names.file='vertex.names.RData')
 }
 %- maybe also 'usage' for other objects documented here.
 \arguments{
@@ -21,8 +25,10 @@ num.cores = NULL,keep.track = TRUE)
   which invokes maximal number of edges allowed in planar network.}
   \item{doPar}{TRUE/FALSE logical variable to choose parallelization.}
   \item{num.cores}{number of cores to use in parallelization.}
-  \item{keep.track}{If TRUE, pfg_el.RData will be created in working folder. This file can be used later for restart in case PFN construction did not finish successfully.
-  Default is TRUE.}
+  \item{keep.track}{If TRUE, pfg_el.RData will be created in working folder. This file can be used later for restart in case PFN construction did not finish successfully. Default is TRUE.}
+  \item{net}{a data.frame with intermediate network edges from a PFN job. The edges should have been converted to numeric index of vector \code{vertex.names} given by \code{vertex.names.file}.}
+  \item{save.vertex.names}{whether to save vertex names that matches the gene indices in intermediate output.}
+  \item{vertex.names.file}{file to save vertex names if \code{save.vertex.names} is \code{TRUE}.}
 }
 \details{
 If \code{doPar = TRUE}, then num.cores are registered for PCP. 
