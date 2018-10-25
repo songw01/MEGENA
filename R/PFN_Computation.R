@@ -75,7 +75,7 @@ serial.PFN <- function(sortedEdge,Ng,maxENum,initial.links=NULL) #parameter init
 }
 
 # a function that purely computes PFN without any quality check on edgelist
-compute.PFN.par <- function(sortedEdge,Ng,maxENum,Njob,Ncore,max.skipEdges = NULL,keep.track = TRUE,initial.links = NULL)
+compute.PFN.par <- function(sortedEdge,Ng,maxENum,Njob,Ncore,max.skipEdges = NULL,keep.track = TRUE,initial.links = NULL,termination_num=0)
 {
 
 Ng <- as.integer(Ng)
@@ -124,9 +124,9 @@ iplanarityTesting <- function(epair,rows,cols,N)
 
   if (is.null(max.skipEdges)) 
   {
-	skip.turns <- ceiling((Ng * 10)/(Njob * Ncore))
+  skip.turns <- ceiling((Ng * 10)/(Njob * Ncore))
   }else{
-	skip.turns <- ceiling(max.skipEdges/(Njob * Ncore))
+  skip.turns <- ceiling(max.skipEdges/(Njob * Ncore))
   }
   
   zero.hit <- 0;
@@ -161,7 +161,12 @@ iplanarityTesting <- function(epair,rows,cols,N)
     
     enum_qual = sum(unlist(lapply(outvector,sum)));
 
-    if (enum_qual == 0) {zero.hit = zero.hit + 1}else{zero.hit = 0;}
+    if (enum_qual <= termination_num) {
+      zero.hit = zero.hit + 1
+      print(paste0("Hit termination criteria of fewer than ",as.character(termination_num),"edges added, stopping"))
+      }else{
+        zero.hit = 0;
+    }
 
     print(paste("Qualified edges: ",as.character(enum_qual),sep = ""))
 
@@ -230,13 +235,19 @@ iplanarityTesting <- function(epair,rows,cols,N)
   return(edgel);
 }
 
-#parameters save.vertex.names & vertex.names.file added by MW
-calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cores = NULL, keep.track = TRUE,save.vertex.names=TRUE,vertex.names.file='vertex.names.RData',maxENum=NULL)
+
+calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cores = NULL, keep.track = TRUE, termination_num=NULL,
+                          save.vertex.names=TRUE,vertex.names.file='vertex.names.RData',maxENum=NULL)
 {
-	if (is.null(num.cores)) num.cores = 1
-    if (is.unsorted(rev(edgelist[[3]]))) edgelist <- edgelist[order(edgelist[[3]], decreasing = TRUE),]
-	if (is.null(max.skipEdges)) max.skipEdges = ceiling((num.cores * 1000) * 0.9999)
-	
+  if (is.null(termination_num)==FALSE){
+    maxENum = termination_num
+  } else {
+    termination_num = 0
+  }
+  if (is.null(num.cores)) num.cores = 1
+    if (is.unsorted(rev(edgelist[[3]]))) edgelist <- edgelist[order(edgelist[[3]], decreasing = T),]
+  if (is.null(max.skipEdges)) max.skipEdges = ceiling((num.cores * 1000) * 0.9999)
+  
     vertex.names <- unique(c(as.character(unique(edgelist[[1]])),
         as.character(unique(edgelist[[2]]))))
 	if(save.vertex.names) save(vertex.names,file=vertex.names.file)
@@ -244,19 +255,19 @@ calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cor
         vertex.names), edgelist[[3]])
     rm(edgelist)
     N <- length(vertex.names)
-	
-	if (is.null(maxENum)) maxENum = 3 * (N - 2)
     cat("####### PFN Calculation commences ########\n")
     if (!doPar) {
-        PFN <- serial.PFN(sortedEdge = ijw, Ng = N, maxENum = maxENum)
+        PFN <- serial.PFN(sortedEdge = ijw, Ng = N, maxENum = 3 *
+            (N - 2))
     }
     else {
-        PFN <- compute.PFN.par(sortedEdge = ijw, Ng = N, maxENum = maxENum, 
-		Njob = 1000, Ncore = num.cores, max.skipEdges = max.skipEdges,
-            keep.track = keep.track)
+        PFN <- compute.PFN.par(sortedEdge = ijw, Ng = N, maxENum = 3 * (N - 2), 
+    Njob = 1000, Ncore = num.cores, max.skipEdges = max.skipEdges,
+            keep.track = keep.track, termination_num=termination_num)
     }
     PFN <- data.frame(row = vertex.names[PFN[,1]], col = vertex.names[PFN[,2]], weight = PFN[, 3])
     return(PFN)
+
 }
 
 #this function is added by MW
@@ -291,4 +302,3 @@ resume.calculate.PFN <- function(edgelist,net,max.skipEdges = NULL,doPar = FALSE
 
  return(PFN)
 }
-
