@@ -26,15 +26,17 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",
 	if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
 	gid <- rownames(datExpr)
 	datExpr <- t(datExpr)
+
 	if (estimator %in% c("pearson","spearman")){
-		rho <- cor(datExpr,method = estimator)
+		rho <- cor(datExpr,method = estimator, use='p') #added used='p' in case there is missing data
 	} else if (estimator %in% "mutualinformation"){
+    #TODO: not sure if this handles missing data
 		datExpr_discrete = arules::discretizeDF(data.frame(datExpr), default=list("method"="cluster",
 		                                                                          "centers"=k,
 		                                                                          "iter.max"=k_iter_max))
 		rho <- infotheo::mutinformation(datExpr_discrete)
 	} else if (estimator %in% "bicor"){
-		rho <- WGCNA::bicor(x=datExpr,quick=1)
+		rho <- WGCNA::bicor(x=datExpr,quick=1, use="pairwise.complete.obs")
 	}
 	if (oneplus){
 		if (estimator %in% "mutualinformation"){
@@ -52,8 +54,9 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",
 	for (i in 1:n.perm)
 	{
 		cat("i = ");cat(i);cat("\n");
+
 		if (estimator %in% c("pearson","spearman")){
-			random.rho <- cor(datExpr,datExpr[perm.ind[[i]],],method = estimator);
+			random.rho <- cor(datExpr,datExpr[perm.ind[[i]],],method = estimator, use='p');
 		} else if (estimator %in% "mutualinformation"){
 			df1 = datExpr
 			df2 = datExpr[perm.ind[[i]],]
@@ -72,7 +75,7 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",
 
 			random.rho <- mi_df_2mat
 		} else if (estimator %in% "bicor"){
-			random.rho <- WGCNA::bicor(x=datExpr,y=datExpr[perm.ind[[i]],],quick=1)
+			random.rho <- WGCNA::bicor(x=datExpr,y=datExpr[perm.ind[[i]],],quick=1, use="pairwise.complete.obs")
 		}
 		if(oneplus){
 			random.rho <- (1+random.rho)/2;

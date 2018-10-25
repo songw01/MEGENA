@@ -14,7 +14,8 @@ exportPattern("^calculate.correlation",
 				"^planaritytest",
 				"^get.DegreeHubStatistic",
 				"^read.geneSet",
-				"^module_convert_to_table")
+				"^module_convert_to_table",
+				"^draw_sunburst_wt_fill")
 importFrom(Rcpp, evalCpp)
 #export(evaluate.boundary)
 #export(iterative.boundaryUpdate)
@@ -34,6 +35,7 @@ import(igraph)
 import(cluster)
 import(fpc)
 import(foreach)
+import(ggraph)
 import(ggplot2)
 import(reshape)
 import(ggrepel)

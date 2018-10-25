@@ -8,8 +8,8 @@ Module plotting function.
 Extract subnetworks for modules and plot. 
 }
 \usage{
-plot_module(output.summary,PFN,subset.module = NULL,col.names,
-gene.set = NULL,color.code = "logFC",show.legend = TRUE,
+plot_module(output.summary, PFN, subset.module = NULL, node.rename=NULL,
+col.names=NULL, gene.set = NULL,color.code = "logFC",show.legend = TRUE,
 label.hubs.only = TRUE,hubLabel.col = "red",hubLabel.sizeProp = 0.5,show.topn.hubs = 10,
 node.sizeProp = 13,label.sizeProp = 13,label.scaleFactor = 10,label.alpha = 0.5,
 layout = "kamada.kawai",output.plot = TRUE,out.dir = "modulePlot")
@@ -18,7 +18,8 @@ layout = "kamada.kawai",output.plot = TRUE,out.dir = "modulePlot")
   \item{output.summary}{output from summary function, "MEGENA.ModuleSummary".}
   \item{PFN}{igraph object retaining PFN topology.}
   \item{subset.module}{A character vector for list of module names to plot. Default = NULL plots all modules in output.summary.}
-  \item{col.names}{a character vector for list of colors to be used for coloring children modules.}
+  \item{node.rename}{ NULL or a data.frame with the first column being the node ids in the network and the second column being node names for display purpose, eg, this could be used to map ensembl gene ids to gene symbols.}
+  \item{col.names}{NULL or a character vector for list of colors to be used for coloring children modules.}
   \item{gene.set}{A list object containing signatures for customized coloring of nodes in resulting network plot.}
   \item{color.code}{A character vector with matched length to "gene.set", to specify colors for each signature.}
   \item{label.hubs.only}{TRUE/FALSE to show labels for significant hub genes only, or all genes. Defauly is TRUE.}

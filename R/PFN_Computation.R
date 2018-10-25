@@ -33,7 +33,7 @@ anyNA <- function(x) any(is.na(x))
 # }
 
 
-serial.PFN <- function(sortedEdge,Ng,maxENum)
+serial.PFN <- function(sortedEdge,Ng,maxENum,initial.links=NULL) #parameter initial.links added by MW
 {
  iplanarityTesting <- function(epair,rows,cols,N)
 {
@@ -47,7 +47,7 @@ serial.PFN <- function(sortedEdge,Ng,maxENum)
  rows <- c();# Initiate row vector
  cols <- c();# initiate col vector
  weights <- c();#initiate weights vector
-
+ if (!is.null(initial.links)){cat("Using input links as initial links...\n");ne <- nrow(initial.links);rows <- initial.links[,1];cols <- initial.links[,2];weights <- initial.links[,3];} #added by MW
  # Check if the final PFG has less edges than the input PFG
  if (Ne < ne)
  {stop("The input PFG has exceeding number of edges.");}
@@ -235,14 +235,22 @@ iplanarityTesting <- function(epair,rows,cols,N)
   return(edgel);
 }
 
-calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cores = NULL, keep.track = TRUE, termination_num=0)
+
+calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cores = NULL, keep.track = TRUE, termination_num=NULL,
+                          save.vertex.names=TRUE,vertex.names.file='vertex.names.RData',maxENum=NULL)
 {
+  if (is.null(termination_num)==FALSE){
+    maxENum = termination_num
+  } else {
+    termination_num = 0
+  }
   if (is.null(num.cores)) num.cores = 1
     if (is.unsorted(rev(edgelist[[3]]))) edgelist <- edgelist[order(edgelist[[3]], decreasing = T),]
   if (is.null(max.skipEdges)) max.skipEdges = ceiling((num.cores * 1000) * 0.9999)
   
     vertex.names <- unique(c(as.character(unique(edgelist[[1]])),
         as.character(unique(edgelist[[2]]))))
+	if(save.vertex.names) save(vertex.names,file=vertex.names.file)
     ijw <- cbind(match(edgelist[[1]], vertex.names), match(edgelist[[2]],
         vertex.names), edgelist[[3]])
     rm(edgelist)
@@ -259,4 +267,38 @@ calculate.PFN <- function (edgelist, max.skipEdges = NULL,doPar = FALSE, num.cor
     }
     PFN <- data.frame(row = vertex.names[PFN[,1]], col = vertex.names[PFN[,2]], weight = PFN[, 3])
     return(PFN)
+
+}
+
+#this function is added by MW
+resume.calculate.PFN <- function(edgelist,net,max.skipEdges = NULL,doPar = FALSE,num.cores = NULL,keep.track = TRUE,vertex.names.file='vertex.names.RData')
+{
+ #net is a data.frame with intermediate network edges and weights from a PFN job; the edges have been converted to numeric index of vector vertex.names
+ vertex.names=NULL;
+ cat('load',vertex.names.file,'\n')
+ load(vertex.names.file)
+ edgelist=edgelist[edgelist[,3] <= min(net[,3],na.rm=TRUE),] #skip the edge candidates that are already tested
+ if(nrow(edgelist)==0) return(data.frame(row=vertex.names[net[,1]],col=vertex.names[net[,2]],weight=net[,3],stringsAsFactors=FALSE))
+ if (is.unsorted(rev(edgelist[,3]))) edgelist <- edgelist[order(edgelist[,3],decreasing = TRUE),]
+ # convert edgelist into integer indices
+ ijw <- cbind(match(edgelist[,1],vertex.names),match(edgelist[,2],vertex.names),edgelist[,3])
+ rm(edgelist)
+
+ ####### Calculate PFN
+
+ N <- length(vertex.names)
+ cat("Percentage completed: ",round(100*nrow(net)/(3*N-2),2),'%\n',sep='')
+ if (is.null(max.skipEdges)) max.skipEdges = ceiling((num.cores * 1000) * 0.9999)
+
+ cat("####### PFN Calculation commences ########\n")
+ if (!doPar)
+ {
+  PFN <- serial.PFN(sortedEdge = ijw,Ng = N,maxENum = 3*(N-2),initial.links=net)
+ }else{
+  PFN <- compute.PFN.par(sortedEdge = ijw,Ng = N,maxENum = 3*(N-2),Njob = 1000,Ncore = num.cores,max.skipEdges = max.skipEdges,keep.track = keep.track,initial.links=net)
+ }
+
+ PFN <- data.frame(row = vertex.names[PFN[,1]],col = vertex.names[PFN[,2]],weight = PFN[,3])
+
+ return(PFN)
 }
