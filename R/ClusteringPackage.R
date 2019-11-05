@@ -703,8 +703,13 @@ d.func = function(x) {1-x},alpha.range = seq(0.01,10,0.01))
 	for (i in 1:length(con.comp))
 	{
 	 gg <- igraph::induced.subgraph(g,con.comp[[i]])
-	 output.mod[[i]] <- nested.kmeans(sub.g = gg,sig.method = sig.method,n.singleton = single.size,k.max = k.max,n.skip = n.skip,
-	 module.pvalue = module.pvalue,d.func = d.func,alpha.range = alpha.range)
+	 if (length(con.comp[[i]]) > single.size & ecount(gg) > 0)
+	 {
+	   output.mod[[i]] <- nested.kmeans(sub.g = gg,sig.method = sig.method,n.singleton = single.size,k.max = k.max,n.skip = n.skip,
+	                                    module.pvalue = module.pvalue,d.func = d.func,alpha.range = alpha.range)
+	 }else{
+	   output.mod[[i]]$singletons = con.comp[[i]]
+	 }
 	}
 
 	###### combine outputs from all components
@@ -717,18 +722,22 @@ d.func = function(x) {1-x},alpha.range = seq(0.01,10,0.01))
 	module.compRel <- c()
 	for (i in 1:length(output.mod))
 	{
-	 new.mod <- output.mod[[i]]$modules
-	 names(new.mod) <- paste("c",i,"_",1:length(new.mod),sep = "")
-	 modules <- c(modules,new.mod)
-	 
-	 mod.rel <- output.mod[[i]]$module.relation;
-	 mod.rel <- cbind(names(new.mod)[mod.rel[,1]],names(new.mod)[mod.rel[,2]])
-	 module.relation <- rbind(module.relation,mod.rel)
-	 
-	 singletons <- c(singletons,output.mod[[i]]$singletons)
-	 module.alpha <- c(module.alpha,output.mod[[i]]$module.alpha)
-	 module.pvalue <- c(module.pvalue,output.mod[[i]]$module.pvalue)
-	 module.compRel <- c(module.compRel,output.mod[[i]]$module.compRel)
+	  if (!is.null(output.mod[[i]]$modules))
+	  {
+	    new.mod <- output.mod[[i]]$modules
+	    names(new.mod) <- paste("c",i,"_",1:length(new.mod),sep = "")
+	    modules <- c(modules,new.mod)
+	    
+	    mod.rel <- output.mod[[i]]$module.relation;
+	    mod.rel <- cbind(names(new.mod)[mod.rel[,1]],names(new.mod)[mod.rel[,2]])
+	    module.relation <- rbind(module.relation,mod.rel)
+	    
+	    module.alpha <- c(module.alpha,output.mod[[i]]$module.alpha)
+	    module.pvalue <- c(module.pvalue,output.mod[[i]]$module.pvalue)
+	    module.compRel <- c(module.compRel,output.mod[[i]]$module.compRel)
+	  }
+	  singletons <- c(singletons,output.mod[[i]]$singletons)
+	  
 	}
 
 	j <- which(sapply(modules,length) > single.size)
