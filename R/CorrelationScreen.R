@@ -128,7 +128,7 @@ calculate.rho.twoMat <- function(data.mat1,data.mat2,n.perm,FDR.cutoff,estimator
 
 ################################################
 
-test.pairwiseCor <- function(data.mat1,data.mat2 = NULL,alternative = "two.sided",method = "pearson")
+test.pairwiseCor <- function(data.mat1,data.mat2 = NULL,alternative = "two.sided",method = "pearson",use.obs = "na.or.complete")
 {
  cat("##### Pairwise Correlation Analysis ######\n")
  
@@ -146,11 +146,11 @@ test.pairwiseCor <- function(data.mat1,data.mat2 = NULL,alternative = "two.sided
  row.names <- rownames(data.mat1);
  col.names <- rownames(data.mat2);
  cat("Calculating correlation coefficient and respective p-value...\n")
- output <- apply(cor.pairs,1,function(ij,mat1,mat2,alternative,method) {
-                                      out <- cor.test(x = mat1[ij[1],],y = mat2[ij[2],],alternative = alternative,method = method);
+ output <- apply(cor.pairs,1,function(ij,mat1,mat2,alternative,method,ub) {
+                                      out <- cor.test(x = mat1[ij[1],],y = mat2[ij[2],],alternative = alternative,method = method,use = ub);
 							       	  out <- c(out$estimate,out$p.value);
 									  names(out) <- c("rho","p.value")
-									  return(out)},mat1 = data.mat1,mat2 = data.mat2,alternative = alternative,method = method)
+									  return(out)},mat1 = data.mat1,mat2 = data.mat2,alternative = alternative,method = method,ub = use.obs)
  if (nrow(output) != nrow(cor.pairs)) output <- t(output)
  output <- as.data.frame(output)
  output <- data.frame(row = cor.pairs[,1],col = cor.pairs[,2],output)
@@ -159,7 +159,8 @@ test.pairwiseCor <- function(data.mat1,data.mat2 = NULL,alternative = "two.sided
  return(output)
 }
 
-test.pairwiseCor.par <- function(data.mat1,data.mat2 = NULL,n.cores,alternative = "two.sided",method = "pearson")
+test.pairwiseCor.par <- function(data.mat1,data.mat2 = NULL,n.cores,
+                                 alternative = "two.sided",method = "pearson",use.obs = "na.or.complete")
 {
  cat("##### Pairwise Correlation Analysis ######\n")
  
@@ -184,11 +185,13 @@ test.pairwiseCor.par <- function(data.mat1,data.mat2 = NULL,n.cores,alternative 
  
  output <- foreach(cpair = split.pairs) %dopar% {
  
-                  out <- apply(cpair,1,function(ij,mat1,mat2,alternative,method) {
-                                                    out <- cor.test(x = mat1[ij[1],],y = mat2[ij[2],],alternative = alternative,method = method);
+                  out <- apply(cpair,1,function(ij,mat1,mat2,alternative,method,use.obs) {
+                                                    out <- cor.test(x = mat1[ij[1],],y = mat2[ij[2],],
+                                                                    alternative = alternative,
+                                                                    method = method,use = use.obs);
 							                    	out <- c(out$estimate,out$p.value);
 													names(out) <- c("rho","p.value")
-													return(out)},mat1 = data.mat1,mat2 = data.mat2,alternative = alternative,method = method)
+													return(out)},mat1 = data.mat1,mat2 = data.mat2,alternative = alternative,method = method,use.obs = use.obs)
 				  if (nrow(out) != nrow(cpair)) out <- t(out)
 				  out <- as.data.frame(out)
                   out <- data.frame(row = cpair[,1],col = cpair[,2],out)
@@ -219,9 +222,9 @@ calculate.correlation <- function(datExpr,doPerm = 100,doPar = FALSE,num.cores =
  {
   if (!doPar)
   {
-   cor.output <- test.pairwiseCor(datExpr,method = method);
+   cor.output <- test.pairwiseCor(datExpr,method = method,use.obs = use.obs);
   }else{
-   cor.output <- test.pairwiseCor.par(datExpr,n.cores = num.cores,method = method);
+   cor.output <- test.pairwiseCor.par(datExpr,n.cores = num.cores,method = method,use.obs = use.obs);
   }
   # extract significant correlation
   vertex.names <- cor.output$row.names
@@ -242,6 +245,18 @@ calculate.correlation <- function(datExpr,doPerm = 100,doPar = FALSE,num.cores =
    # output results to files
    
   }
+  
+  if (output.corTable)
+  {
+    cat("- outputting correlation results...\n");
+    if (!is.null(saveto))
+    {
+      write.table(edgelist,file = paste(saveto,"Data_Correlation.txt",sep = "/"),sep = "\t",row.names = F,col.names = T,quote = F)
+    }else{
+      write.table(edgelist,file = "Data_Correlation.txt",sep = "\t",row.names = F,col.names = T,quote = F)
+    }
+  }
+  
  }else{
   
   rho.output <- calculate.rho(datExpr,n.perm = doPerm,FDR.cutoff = FDR.cutoff,estimator = method,use.obs = use.obs,
@@ -256,19 +271,22 @@ calculate.correlation <- function(datExpr,doPerm = 100,doPar = FALSE,num.cores =
     write.table(rho.output$FDR,file = "correlation_FDR_table.txt",sep = "\t",row.names = F,col.names = T,quote = F)
    }
   }
+  
+  if (output.corTable)
+  {
+    cat("- outputting correlation results...\n");
+    if (!is.null(saveto))
+    {
+      write.table(rho.output$signif.ijw,file = paste(saveto,"Data_Correlation.txt",sep = "/"),sep = "\t",row.names = F,col.names = T,quote = F)
+    }else{
+      write.table(rho.output$signif.ijw,file = "Data_Correlation.txt",sep = "\t",row.names = F,col.names = T,quote = F)
+    }
+  }
+  edgelist <- rho.output$signif.ijw;
  }
  
- if (output.corTable)
- {
-  cat("- outputting correlation results...\n");
-  if (!is.null(saveto))
-  {
-    write.table(rho.output$signif.ijw,file = paste(saveto,"Data_Correlation.txt",sep = "/"),sep = "\t",row.names = F,col.names = T,quote = F)
-  }else{
-    write.table(rho.output$signif.ijw,file = "Data_Correlation.txt",sep = "\t",row.names = F,col.names = T,quote = F)
-  }
- }
- edgelist <- rho.output$signif.ijw;
+ 
+ 
  
  return(edgelist)
 }
