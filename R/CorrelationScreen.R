@@ -17,16 +17,15 @@ count.FD <- function(rho,thresh.vec)
 	 return(output)
 } 
 
-calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",rho.thresh = NULL,sort.el = TRUE)
+calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",use.obs = "na.or.complete",
+                          rho.thresh = NULL,sort.el = TRUE)
 {
 	if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
 	gid <- rownames(datExpr)
 	datExpr <- t(datExpr)
-	rho <- abs(cor(datExpr,method = estimator,use='p')) #added used='p' in case there is missing data
+	rho <- abs(cor(datExpr,method = estimator))
 	
 	if (is.null(rho.thresh)) rho.thresh <- seq(0,1,0.01)
-	
-	
 	
 	#### permute data matrix to calculate FDR
 	nc <- nrow(datExpr)
@@ -35,7 +34,7 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",rho.th
 	for (i in 1:n.perm)
 	{
 		cat("i = ");cat(i);cat("\n");
-		random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use='p'))
+		random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use = use.obs))
 		random.rho <- as.vector(random.rho[upper.tri(random.rho)]);
 		
 		count.out[[i]] <- count.FD(random.rho,rho.thresh)
@@ -44,6 +43,19 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",rho.th
 	PR = count.FD(as.vector(rho[upper.tri(rho)]),rho.thresh);PR = PR[,2]
 	FPR = Reduce("+",lapply(count.out,function(x) x[,2]))/n.perm;FPR[1] <- 1;
 	FDR = FPR/PR;FDR[which(FPR == 0)] <- 0;FDR[which(FDR > 1)] <- 1;
+	
+	### apply constraint that higher threshold yields less FDR than lower thresholds
+	mx = FDR[1]
+	for (i in 2:length(FDR))
+	{
+		if (FDR[i] > mx) 
+		{
+			FDR[i] = mx 
+		}else{
+			mx = FDR[i]
+		}
+	}
+	
 	FDR.table <- data.frame(cut.off = rho.thresh,FPR = FPR,PR = PR,FDR = FDR)
 
 	# choose threshold respect to FDR.cutoff
@@ -189,8 +201,9 @@ test.pairwiseCor.par <- function(data.mat1,data.mat2 = NULL,n.cores,alternative 
 }
 
 calculate.correlation <- function(datExpr,doPerm = 100,doPar = FALSE,num.cores = 8,method = "pearson",
-FDR.cutoff = 0.05,n.increment = 100,is.signed = FALSE,
-output.permFDR = TRUE,output.corTable = TRUE,saveto = NULL)
+                                  use.obs = "na.or.complete",
+                                  FDR.cutoff = 0.05,n.increment = 100,is.signed = FALSE,
+                                  output.permFDR = TRUE,output.corTable = TRUE,saveto = NULL)
 {
  # Input
  # datExpr = expression matrix (row = probe,column = sample)
@@ -231,7 +244,8 @@ output.permFDR = TRUE,output.corTable = TRUE,saveto = NULL)
   }
  }else{
   
-  rho.output <- calculate.rho(datExpr,n.perm = doPerm,FDR.cutoff = FDR.cutoff,estimator = method,rho.thresh =  seq(0,1,1/n.increment),sort.el = TRUE)
+  rho.output <- calculate.rho(datExpr,n.perm = doPerm,FDR.cutoff = FDR.cutoff,estimator = method,use.obs = use.obs,
+                              rho.thresh =  seq(0,1,1/n.increment),sort.el = TRUE)
   
   if (output.permFDR)
   {
