@@ -1,7 +1,7 @@
 do.MEGENA <- function(g,
 do.hubAnalysis = TRUE,
 mod.pval = 0.05,hub.pval = 0.05,remove.unsig = TRUE,
-min.size = 10,max.size = 2500,
+min.size = 10,max.size = 2500,d.func = function(x) {1-x},
 doPar = FALSE,num.cores = 4,n.perm = 100,singleton.size = 3,
 save.output = FALSE)
 {
@@ -19,7 +19,7 @@ save.output = FALSE)
 	
 	###### do clustering
 	cat("Commence multiscale clustering....\n") 
-	module.output <- nested.kmeans.all(g = g,single.size = singleton.size);
+	module.output <- nested.kmeans.all(g = g,single.size = singleton.size,d.func = d.func);
 	if (save.output) save(module.output,file = "multiscale_clusters.RData")
 	
 	# get the list of unsplit parent modules
