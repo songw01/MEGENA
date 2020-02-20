@@ -11,7 +11,8 @@ Song W.-M., Di Matteo T.and Aste T., Building Complex Networks with Platonic Sol
 
 For installation for developmental github version: 
 
-library(devtools)
-install_github("songw01/MEGENA")
+library(devtools);
+
+install_github("songw01/MEGENA");
 
 
