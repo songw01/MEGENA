@@ -8,3 +8,10 @@ Song W.-M., Zhang B. (2015) Multiscale Embedded Gene Co-expression Network Analy
 For statistical mechanics aspects involved in MEGENA, please check: 
 
 Song W.-M., Di Matteo T.and Aste T., Building Complex Networks with Platonic Solids, Physical Reivew E, 2012 Apr;85(4 Pt 2):046115.
+
+For installation for developmental github version: 
+
+library(devtools)
+install_github("songw01/MEGENA")
+
+
