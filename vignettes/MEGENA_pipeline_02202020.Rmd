@@ -2,7 +2,9 @@
 title: "MEGENA_pipeline_02202020"
 author: "Won-Min Song"
 date: "February 20, 2020"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -142,7 +144,7 @@ print(hplot$pobj)
 hplot = get_module_hierarchy_graph(htbl,max.depth = 5,anchor.mid = NULL,h.scale = NULL,is.circular = FALSE,layout = "dendrogram",add_names = FALSE)
 
 # get a mock piechart matrix
-pie.data = matrix(runif(12,0,1),nrow = nrow(hplot$pobj$data))
+pie.data = matrix(runif(nrow(hplot$pobj$data)*3,0,1),nrow = nrow(hplot$pobj$data))
 colnames(pie.data) = LETTERS[1:ncol(pie.data)]
 
 # update with pie charts
