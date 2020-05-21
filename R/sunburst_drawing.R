@@ -9,8 +9,11 @@ draw_sunburst_wt_fill <- function(module.df,# module table
                                   fill.type = "continuous",# continuous/discrete, is the variable numeric or factor? 
                                   log.transform = TRUE,# TRUE/FALSE, do log10 transform for p-values?
                                   fill.scale = NULL,
+                                  # colour aspects
+                                  border.col = "black", # sunburst border color
+                                  border.width = 0.25, # sunburst border line width
                                   theme.adjust = NULL)
-                                  
+
 {
   #require(ggraph)
   #############
@@ -36,7 +39,7 @@ draw_sunburst_wt_fill <- function(module.df,# module table
         fill.lab = paste("-log10(",feat.col,")",sep = "")
       }
       sunb$data$fill.value = vec[match(sunb$data$name,module.df[[which(colnames(module.df) == id.col)]])]
-      sunb = sunb + geom_node_arc_bar(aes(fill = fill.value),size = 0.25) + 
+      sunb = sunb + geom_node_arc_bar(aes(fill = fill.value),size = border.width,colour = border.col) + 
         guides(fill = guide_colorbar(title = fill.lab)) + fill.scale
     }
     if (fill.type == "discrete")
@@ -45,7 +48,7 @@ draw_sunburst_wt_fill <- function(module.df,# module table
       fill.lab = feat.col
       if (!is.factor(vec)) stop(paste("variable:",feat.col," is not factor.",sep = "")) 
       sunb$data$fill.value = vec[match(sunb$data$name,module.df[[which(colnames(module.df) == id.col)]])]
-      sunb = sunb + geom_node_arc_bar(aes(fill = fill.value),size = 0.25) + 
+      sunb = sunb + geom_node_arc_bar(aes(fill = fill.value),size = border.width,colour = border.col) + 
         guides(fill = guide_legend(title = fill.lab)) + fill.scale
     }
     

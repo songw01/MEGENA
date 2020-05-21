@@ -15,14 +15,12 @@ extract.module_with_hub <- function(output.summary)
 }
 globalVariables(names = c("X1","X2","Y1","Y2","id","n.cores","node.lab","node.stat"))
 ## gene set based module plotting
-plot_module <- function(output.summary,PFN,subset.module = NULL,node.rename=NULL,col.names=NULL,
+plot_module <- function(output.summary,PFN,subset.module = NULL,col.names,
 gene.set = NULL,color.code = "logFC",show.legend = TRUE,
 label.hubs.only = TRUE,hubLabel.col = "red",hubLabel.sizeProp = 0.5,show.topn.hubs = 10,
 node.sizeProp = 13,label.sizeProp = 13,label.scaleFactor = 10,label.alpha = 0.5,
 layout = "kamada.kawai",output.plot = TRUE,out.dir = "modulePlot")
 {
-#node.rename, NULL or a data.frame with the first column being the node ids in the network and the second column being node names for display purpose, eg, this could be used to map ensembl gene ids to gene symbols
-	if(missing(col.names) || is.null(col.names)) col.names <- pfn.plot.colors.internal #added by MW
 	# get matched lists of modules and hubs
 	matched.obj <- extract.module_with_hub(output.summary)
 		
@@ -105,7 +103,6 @@ layout = "kamada.kawai",output.plot = TRUE,out.dir = "modulePlot")
 		}else{
 		 node.features <- data.frame(node.lab = V(sub.PFN)$name,id = V(sub.PFN)$name,node.features[,-1])
 		}
-		if(! is.null(node.rename)) node.features$node.lab=node.rename[match(node.features$node.lab,node.rename[,1]),2] #this line added by MW
 		
 		## combine with node attributes
 		# create edges data.frame object for segment plotting
