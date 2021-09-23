@@ -23,11 +23,12 @@ calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",use.ob
 	if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
 	gid <- rownames(datExpr)
 	datExpr <- t(datExpr)
-	rho <- abs(cor(datExpr,method = estimator))
+	rho <- abs(cor(datExpr,method = estimator,use = use.obs))
 	
 	if (is.null(rho.thresh)) rho.thresh <- seq(0,1,0.01)
 	
 	#### permute data matrix to calculate FDR
+	set.seed(1234)
 	nc <- nrow(datExpr)
 	perm.ind <- lapply(1:n.perm,function(i,n) sample(1:n,n),n = nc)
 	count.out <- vector("list",n.perm)
