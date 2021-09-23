@@ -1,7 +1,7 @@
 Package: MEGENA
 Type: Package
 Title: Multiscale Clustering of Geometrical Network
-Version: 1.4.1
+Version: 1.4.2
 Date: 2020-05-21
 Author: Won-Min Song, Bin Zhang
 Maintainer: Won-Min Song <wonmin1984@gmail.com>
