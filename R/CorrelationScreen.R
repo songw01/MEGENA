@@ -1,81 +1,138 @@
 
-count.FD <- function(rho,thresh.vec)
+count.FD <- function(rho,thresh.vec,direction = "ascending")
 {
-	 # combine threshold and correlation values for efficiency
-	 n.rho <- length(rho)
-	 label.vec <- c(rep(1,length(rho)),rep(0,length(thresh.vec)));# label correlation value and threshold value
-	 rho <- c(rho,thresh.vec)# combine correlation and threhold values for efficiency.
-	 # sort correlation values
-	 i <- order(rho)
-	 rho <- rho[i]
-	 label.vec <- label.vec[i]
-	 
-	 # count permuted correlation values above thresholds
-	 j <- which(label.vec == 0)
-	 output <- cbind(rho[j],(n.rho - cumsum(label.vec)[j])/n.rho)
-	 colnames(output) <- c("rho.cutoff","FDR")
-	 return(output)
+  # combine threshold and correlation values for efficiency
+  n.rho <- length(rho)
+  label.vec <- c(rep(1,length(rho)),rep(0,length(thresh.vec)));# label correlation value and threshold value
+  rho <- c(rho,thresh.vec)# combine correlation and threhold values for efficiency.
+  
+  if (direction == "ascending")
+  {
+    # sort correlation values
+    i <- order(rho)
+    rho <- rho[i]
+    label.vec <- label.vec[i]
+    
+    # count permuted correlation values above thresholds
+    j <- which(label.vec == 0)
+    output <- cbind(rho[j],(n.rho - cumsum(label.vec)[j])/n.rho)
+    colnames(output) <- c("rho.cutoff","FDR")
+    
+  }
+  if (direction == "descending")
+  {
+    # sort correlation values
+    i <- order(rho,decreasing = TRUE)
+    rho <- rho[i]
+    label.vec <- label.vec[i]
+    
+    # count permuted correlation values above thresholds
+    j <- which(label.vec == 0)
+    output <- cbind(rho[j],(n.rho - cumsum(label.vec)[j])/n.rho)
+    colnames(output) <- c("rho.cutoff","FDR")
+    
+  }
+  return(output)
 } 
 
-calculate.rho <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",use.obs = "na.or.complete",
-                          rho.thresh = NULL,sort.el = TRUE)
+calculate.rho.signed <- function(datExpr,n.perm,FDR.cutoff,estimator = "pearson",
+                                 use.obs = "na.or.complete",
+                                 direction = "positive",
+                                 rho.thresh = NULL,sort.el = TRUE)
 {
-	if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
-	gid <- rownames(datExpr)
-	datExpr <- t(datExpr)
-	rho <- abs(cor(datExpr,method = estimator,use = use.obs))
-	
-	if (is.null(rho.thresh)) rho.thresh <- seq(0,1,0.01)
-	
-	#### permute data matrix to calculate FDR
-	set.seed(1234)
-	nc <- nrow(datExpr)
-	perm.ind <- lapply(1:n.perm,function(i,n) sample(1:n,n),n = nc)
-	count.out <- vector("list",n.perm)
-	for (i in 1:n.perm)
-	{
-		cat("i = ");cat(i);cat("\n");
-		random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use = use.obs))
-		random.rho <- as.vector(random.rho[upper.tri(random.rho)]);
-		
-		count.out[[i]] <- count.FD(random.rho,rho.thresh)
-		rm(random.rho)
-	}
-	PR = count.FD(as.vector(rho[upper.tri(rho)]),rho.thresh);PR = PR[,2]
-	FPR = Reduce("+",lapply(count.out,function(x) x[,2]))/n.perm;FPR[1] <- 1;
-	FDR = FPR/PR;FDR[which(FPR == 0)] <- 0;FDR[which(FDR > 1)] <- 1;
-	
-	### apply constraint that higher threshold yields less FDR than lower thresholds
-	mx = FDR[1]
-	for (i in 2:length(FDR))
-	{
-		if (FDR[i] > mx) 
-		{
-			FDR[i] = mx 
-		}else{
-			mx = FDR[i]
-		}
-	}
-	
-	FDR.table <- data.frame(cut.off = rho.thresh,FPR = FPR,PR = PR,FDR = FDR)
-
-	# choose threshold respect to FDR.cutoff
-	rho.cutoff <- min(FDR.table$cut.off[FDR.table$FDR < FDR.cutoff])
-
-	# coerce into edgelist
-	ij <- which(rho > rho.cutoff & upper.tri(rho),arr.ind = T)
-	w <- apply(ij,1,function(xy,m) m[xy[1],xy[2]],m = rho)
-	ijw <- cbind(ij,w);colnames(ijw) <- c("row","col","rho")
-
-	ijw <- as.data.frame(ijw)
-	ijw[[1]] <- gid[ijw[[1]]];ijw[[2]] <- gid[ijw[[2]]]
-
-	if (sort.el) ijw <- ijw[order(ijw[,3],decreasing = T),]
-
-	output <- list(signif.ijw = ijw,FDR = FDR.table)
-
-	return(output)
+  if (is.null(rownames(datExpr))) rownames(datExpr) <- paste("g",1:nrow(datExpr),sep = "")
+  gid <- rownames(datExpr)
+  datExpr <- t(datExpr)
+  
+  if (direction == "absolute") rho <- abs(cor(datExpr,method = estimator,use = use.obs))
+  if (direction != "absolute") rho <- cor(datExpr,method = estimator,use = use.obs)
+  
+  if (is.null(rho.thresh)) 
+  {
+    if (direction == "absolute") rho.thresh <- seq(0,1,0.01)
+    if (direction != "absolute") rho.thresh <- seq(-1,1,0.01)
+  }
+  
+  #### permute data matrix to calculate FDR
+  set.seed(1234)
+  nc <- nrow(datExpr)
+  perm.ind <- lapply(1:n.perm,function(i,n) sample(1:n,n),n = nc)
+  count.out <- vector("list",n.perm)
+  for (i in 1:n.perm)
+  {
+    cat("i = ");cat(i);cat("\n");
+    if (direction == "absolute") random.rho <- abs(cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use = use.obs))
+    if (direction != "absolute") random.rho <- cor(datExpr,datExpr[perm.ind[[i]],],method = estimator,use = use.obs)
+    
+    random.rho <- as.vector(random.rho[upper.tri(random.rho)]);
+    
+    if (direction == "absolute" | direction == "positive") count.out[[i]] <- count.FD(random.rho,rho.thresh,direction = "ascending")
+    if (direction == "negative") count.out[[i]] <- count.FD(random.rho,rho.thresh,direction = "descending")
+    
+    rm(random.rho)
+  }
+  
+  if (direction == "absolute" | direction == "positive") PR = count.FD(as.vector(rho[upper.tri(rho)]),rho.thresh,direction = "ascending");
+  if (direction == "negative") PR = count.FD(as.vector(rho[upper.tri(rho)]),rho.thresh,direction = "descending");
+  
+  PR = PR[,2]
+  FPR = Reduce("+",lapply(count.out,function(x) x[,2]))/n.perm;FPR[1] <- 1;
+  FDR = FPR/PR;FDR[which(FPR == 0)] <- 0;FDR[which(FDR > 1)] <- 1;
+  
+  ### apply constraint that higher threshold yields less FDR than lower thresholds
+  mx = FDR[1]
+  for (i in 2:length(FDR))
+  {
+    if (FDR[i] > mx) 
+    {
+      FDR[i] = mx 
+    }else{
+      mx = FDR[i]
+    }
+  }
+  
+  if (direction == "absolute" | direction == "positive") FDR.table <- data.frame(cut.off = rho.thresh,FPR = FPR,PR = PR,FDR = FDR)
+  if (direction == "negative") FDR.table <- data.frame(cut.off = rev(rho.thresh),FPR = FPR,PR = PR,FDR = FDR)
+  
+  
+  # choose threshold respect to FDR.cutoff
+  if (direction == "absolute" | direction == "positive") 
+  {
+    rho.cutoff <- min(FDR.table$cut.off[FDR.table$FDR < FDR.cutoff])
+    
+    # coerce into edgelist
+    ij <- which(rho > rho.cutoff & upper.tri(rho),arr.ind = T)
+    w <- apply(ij,1,function(xy,m) m[xy[1],xy[2]],m = rho)
+    ijw <- cbind(ij,w);colnames(ijw) <- c("row","col","rho")
+    
+    ijw <- as.data.frame(ijw)
+    ijw[[1]] <- gid[ijw[[1]]];ijw[[2]] <- gid[ijw[[2]]]
+    
+    if (sort.el) ijw <- ijw[order(ijw[,3],decreasing = T),]
+    
+    output <- list(signif.ijw = ijw,FDR = FDR.table)
+    
+  }
+  if (direction == "negative")
+  {
+    rho.cutoff <- max(FDR.table$cut.off[FDR.table$FDR < FDR.cutoff])
+    
+    # coerce into edgelist
+    ij <- which(rho <= rho.cutoff & upper.tri(rho),arr.ind = T)
+    w <- apply(ij,1,function(xy,m) m[xy[1],xy[2]],m = rho)
+    ijw <- cbind(ij,w);colnames(ijw) <- c("row","col","rho")
+    
+    ijw <- as.data.frame(ijw)
+    ijw[[1]] <- gid[ijw[[1]]];ijw[[2]] <- gid[ijw[[2]]]
+    
+    if (sort.el) ijw <- ijw[order(ijw[,3],decreasing = F),]
+    
+    output <- list(signif.ijw = ijw,FDR = FDR.table)
+    
+  }
+  return(output)
 }
+
 
 
 calculate.rho.twoMat <- function(data.mat1,data.mat2,n.perm,FDR.cutoff,estimator = "pearson",rho.thresh = NULL,sort.el = TRUE)
