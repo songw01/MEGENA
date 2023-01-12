@@ -1,16 +1,16 @@
 Package: MEGENA
 Type: Package
 Title: Multiscale Clustering of Geometrical Network
-Version: 1.3.4
-Date: 2018-08-30
+Version: 1.5.2
+Date: 2023-01-12
 Author: Won-Min Song, Bin Zhang
 Maintainer: Won-Min Song <wonmin1984@gmail.com>
 Description: Co-Expression Network Analysis by adopting network embedding technique. Song W.-M., Zhang B. (2015) Multiscale Embedded Gene Co-expression Network Analysis. PLoS Comput Biol 11(11): e1004574. <doi: 10.1371/journal.pcbi.1004574>.
 URL: https://github.com/songw01/MEGENA
 License: GPL (>= 3)
-Imports: Rcpp (>= 0.11.3),Matrix (>= 1.1-5),ggplot2 (>= 1.0.0),reshape (>= 0.8.5),fpc (>= 2.1-11),cluster (>= 2.0.7-1),ggrepel (>= 0.5), ggraph (>= 1.0.1)
-Depends: R (>= 3.4.0),doParallel (>= 1.0.11),foreach (>= 1.4.4),igraph (>= 1.2.1)
+Imports: Rcpp (>= 1.0.5),Matrix (>= 1.2-18),ggplot2 (>= 3.3.5),reshape (>= 0.8.5),fpc (>= 2.1-11),cluster (>= 2.0.7-1),ggrepel (>= 0.9.1), ggraph (>= 2.0.0), impute (>= 1.58.0)
+Depends: R (>= 4.2.0),doParallel (>= 1.0.16),foreach (>= 1.5.2),igraph (>= 1.3.4)
 LinkingTo: Rcpp,BH
-Packaged: 2018-05-27 02:49:11 UTC; Won
+Packaged: 2022-10-12 10:17:11 UTC; Won
 Suggests: knitr, rmarkdown
 VignetteBuilder: knitr

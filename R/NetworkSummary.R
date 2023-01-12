@@ -56,7 +56,7 @@ output.sig = TRUE)
 	module.parent <- rep(NA,length(module.output$modules))
 	names(module.parent) <- names(module.output$modules)
 	module.parent[names(module.output$modules)[module.output$module.relation[,2]]] <- names(module.output$modules)[module.output$module.relation[,1]]
-	if (!is.null(hub.output))
+	if (all(!is.null(hub.output)) & all(!is.na(hub.output)))
 	{
 		# module by scale-groups
 		module.scaleGroup <- lapply(hub.output$scale.summary.clusters,names)
@@ -104,9 +104,9 @@ output.sig = TRUE)
 	  gene.vec <- as.character(annot.table[[symbol.col]]);
 	  names(gene.vec) <- as.character(annot.table[[id.col]])
 	  n.modules <- lapply(modules,function(x,gene.vec) paste(gene.vec[match(x,names(gene.vec))],x,sep = "|"),gene.vec = gene.vec)
-	  output <- list(modules = modules,mapped.modules = n.modules,module.table = module.table[which(module.table$module.id %in% sig.modules),])
+	  output <- list(modules = modules,mapped.modules = n.modules,module.table = module.table[which(module.table$module.id %in% names(modules)),])
 	 }else{
-	  output <- list(modules = modules,module.table = module.table[which(module.table$module.id %in% sig.modules),])
+	  output <- list(modules = modules,module.table = module.table[which(module.table$module.id %in% names(modules)),])
 	 }
 	}
 
