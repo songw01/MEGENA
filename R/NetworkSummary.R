@@ -56,7 +56,11 @@ output.sig = TRUE)
 	module.parent <- rep(NA,length(module.output$modules))
 	names(module.parent) <- names(module.output$modules)
 	module.parent[names(module.output$modules)[module.output$module.relation[,2]]] <- names(module.output$modules)[module.output$module.relation[,1]]
+<<<<<<< HEAD
 	if (all(!is.null(hub.output)) & all(!is.na(hub.output)))
+=======
+	if (!is.null(hub.output) & !is.na(hub.output))
+>>>>>>> 5fe13e88b6d167f5a6c7f0a5b7c619500a63ca23
 	{
 		# module by scale-groups
 		module.scaleGroup <- lapply(hub.output$scale.summary.clusters,names)

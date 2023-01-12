@@ -13,6 +13,8 @@
                         feat.col,
                         fill.type = "continuous",log.transform = TRUE,
                         fill.scale = NULL,
+						border.col = "black",
+						border.width = 0.25,
                         theme.adjust = NULL
                         )
 }
@@ -25,6 +27,8 @@
   \item{fill.type}{continuous/discrete, is the variable numeric (continuous) or factor (discrete)?}
   \item{log.transform}{TRUE/FALSE. do log10 transform for p-values?}
   \item{fill.scale}{A ggplot object to specify heatmap coloring scheme. Permissible functions are: scale_fill_gradient,scale_fill_gradient2,scale_fill_gradientn,scale_fill_manual.}
+  \item{border.col}{sunburst border color. Default is black.}
+  \item{border.width}{sunburst border width. Default is 0.25.}
   \item{theme.adjust}{A ggplot object to specify theme for plotting.}
 }
 \details{
