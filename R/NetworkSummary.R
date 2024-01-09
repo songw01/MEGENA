@@ -76,13 +76,13 @@ output.sig = TRUE)
 		module.table <- data.frame(module.id = module.id,module.size = module.size[module.id],module.parent = module.parent[module.id],
 		module.hub = hub.summary[module.id],
 		#module.scale = scale.group[module.id],
-		module.alpha = module.alpha[module.id],
+		module.alpha = alpha.val[module.id],
 		module.pvalue = module.pvalue[module.id])
 	}else{
 		module.id <- names(module.output$modules)
 		module.table <- data.frame(module.id = module.id,module.size = module.size[module.id],module.parent = module.parent[module.id],
 		module.hub = hub.summary[module.id],
-		module.alpha = module.alpha[module.id],
+		module.alpha = alpha.val[module.id],
 		#module.scale = rep(NA,length(module.id)),
 		module.pvalue = module.pvalue[module.id])
 	}
