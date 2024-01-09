@@ -51,6 +51,10 @@ output.sig = TRUE)
 
 	# module size 
 	module.size <- sapply(module.output$modules,length)
+	
+	# module scale value
+	alpha.val = module.output$module.alpha
+	names(alpha.val) = names(module.output$modules)
 
 	# module relation
 	module.parent <- rep(NA,length(module.output$modules))
@@ -70,11 +74,17 @@ output.sig = TRUE)
 
 		module.id <- names(module.output$modules)
 		module.table <- data.frame(module.id = module.id,module.size = module.size[module.id],module.parent = module.parent[module.id],
-		module.hub = hub.summary[module.id],module.scale = scale.group[module.id],module.pvalue = module.pvalue[module.id])
+		module.hub = hub.summary[module.id],
+		#module.scale = scale.group[module.id],
+		module.alpha = module.alpha[module.id],
+		module.pvalue = module.pvalue[module.id])
 	}else{
 		module.id <- names(module.output$modules)
 		module.table <- data.frame(module.id = module.id,module.size = module.size[module.id],module.parent = module.parent[module.id],
-		module.hub = hub.summary[module.id],module.scale = rep(NA,length(module.id)),module.pvalue = module.pvalue[module.id])
+		module.hub = hub.summary[module.id],
+		module.alpha = module.alpha[module.id],
+		#module.scale = rep(NA,length(module.id)),
+		module.pvalue = module.pvalue[module.id])
 	}
 	
 
